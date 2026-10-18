@@ -1,0 +1,934 @@
+{
+ "meta": {
+  "generated_at": "2026-10-10T17:30:55+00:00",
+  "runtime_seconds": 70.3,
+  "rows": 28436,
+  "players": 9701,
+  "seasons": [
+   1718,
+   1819,
+   1920,
+   2021,
+   2122,
+   2223,
+   2324,
+   2425
+  ],
+  "market_benchmark": "Transfermarkt snapshot",
+  "fingerprint": "7c9658e21e"
+ },
+ "registry": [
+  {
+   "key": "performance_score",
+   "label": "Performance score",
+   "status": "partially_validated",
+   "status_label": "Partially validated",
+   "summary": "A stable, robust ranking that agrees moderately with market judgement. Weights are expert-set, so it is a structured opinion, not a measured truth.",
+   "evidence": [
+    "Year-over-year rank stability 0.556 (players with 900+ minutes in both seasons)",
+    "League-adjusted agreement with Transfermarkt value 0.418 (FIFA overall, for reference: 0.827)",
+    "Ranking barely moves when weights change by +/-20% (worst case 0.963)"
+   ],
+   "limits": "Weaker for: GK (year-over-year stability 0.146), CB (market agreement 0.085), LWB (market agreement 0.139)",
+   "rule": "3 checks: year-over-year rank stability >= 0.50, league-adjusted agreement with market value >= 0.35, worst-case weight-sensitivity rank correlation >= 0.95. 2 or 3 pass = partially validated (weights are expert-set and there is no external ground truth, so it is never rated fully validated); fewer = exploratory."
+  },
+  {
+   "key": "adjusted_performance_score",
+   "label": "League-adjusted performance",
+   "status": "validated",
+   "status_label": "Validated",
+   "summary": "Adjusting for league strength brings scores clearly closer to how the market values players.",
+   "evidence": [
+    "Agreement with market value: 0.276 raw -> 0.418 league-adjusted"
+   ],
+   "limits": "",
+   "rule": "Validated if league adjustment raises agreement with market value by >= 0.05 versus the raw score."
+  },
+  {
+   "key": "expected_performance_12m",
+   "label": "Expected performance (12 months)",
+   "status": "validated",
+   "status_label": "Validated",
+   "summary": "A modest but real improvement over assuming no change. It pulls players toward their own average; it cannot spot a breakout before it appears in the stats.",
+   "evidence": [
+    "Error 9.1 points vs 9.95 for 'no change' (8.5% better), n=4446"
+   ],
+   "limits": "",
+   "rule": "Validated if the out-of-time blend beats both 'no change' and 'historical mean' baselines on MAE, and beats 'no change' by >= 5%."
+  },
+  {
+   "key": "potential_24m",
+   "label": "Projection (24 months)",
+   "status": "partially_validated",
+   "status_label": "Partially validated",
+   "summary": "Two-season-ahead projection tested with the same walk-forward method; accuracy is similar to the 12-month estimate.",
+   "evidence": [
+    "Walk-forward correlation 0.533, error 8.99 points (n=3081)"
+   ],
+   "limits": "",
+   "rule": "Partially validated if the 2-season walk-forward correlation with actual >= 0.50."
+  },
+  {
+   "key": "development_potential",
+   "label": "Development potential",
+   "status": "exploratory",
+   "status_label": "Exploratory",
+   "summary": "An upside ceiling (current ability + age room + FIFA potential gap), not a forecast. Read it as 'how high this could go', never as 'what to expect next season'.",
+   "evidence": [
+    "Overstates next-season performance by 14.72 points on average; error 16.0 vs 10.19 for 'no change'"
+   ],
+   "limits": "",
+   "rule": "Exploratory if it is not an unbiased forecast (|mean bias| > 3 points or worse MAE than 'no change')."
+  },
+  {
+   "key": "breakout_probability",
+   "label": "Breakout probability",
+   "status": "partially_validated",
+   "status_label": "Partially validated",
+   "summary": "Historical rates for similar players (age band and recent direction). They separate likelier from less likely cases only modestly, so use them to rank, not as literal percentages.",
+   "evidence": [
+    "Out-of-time AUC 0.631 (0.5 = no skill); the top 20% of predictions are 1.48x the base rate",
+    "Largest gap between predicted and observed rate: 7.2 points (n=16012 transitions)"
+   ],
+   "limits": "Probabilities are shown with their cohort sample size; thin cohorts are marked low-evidence.",
+   "rule": "Out-of-time AUC >= 0.65 and calibration gap <= 5 points = validated; AUC >= 0.58 = partially validated; else exploratory."
+  },
+  {
+   "key": "decline_probability",
+   "label": "Decline probability",
+   "status": "partially_validated",
+   "status_label": "Partially validated",
+   "summary": "Historical rates for similar players (age band and recent direction). They separate likelier from less likely cases only modestly, so use them to rank, not as literal percentages.",
+   "evidence": [
+    "Out-of-time AUC 0.616 (0.5 = no skill); the top 20% of predictions are 1.46x the base rate",
+    "Largest gap between predicted and observed rate: 8.1 points (n=16012 transitions)"
+   ],
+   "limits": "Probabilities are shown with their cohort sample size; thin cohorts are marked low-evidence.",
+   "rule": "Same rule as breakout probability."
+  },
+  {
+   "key": "recruitment_risk",
+   "label": "Recruitment risk tier",
+   "status": "partially_validated",
+   "status_label": "Partially validated",
+   "summary": "Measures how uncertain a player's next season is (volatility), not whether he will decline.",
+   "evidence": [
+    "Share of players who declined next season is flat across tiers: LOW 51.6%, MEDIUM 49.98%, HIGH 49.35%"
+   ],
+   "limits": "Do not read HIGH risk as 'likely to get worse'.",
+   "rule": "Partially validated as a volatility indicator only -- never claimed to predict decline."
+  },
+  {
+   "key": "value_gap",
+   "label": "Fair value and 'undervalued' signal",
+   "status": "not_validated",
+   "status_label": "Not validated",
+   "summary": "Fair value tracks FIFA's own valuation closely and sits well above Transfermarkt levels. Being flagged undervalued has not been shown to predict a rise in market value.",
+   "evidence": [
+    "Forward test (n=25390): rank correlation between value gap and the next 12 months' market-value change = 0.013; positive in 3/8 seasons",
+    "Fair value is 1.41x Transfermarkt value on the median; rank agreement 0.896 (FIFA value alone: 0.893)"
+   ],
+   "limits": "Treat opportunity lists as a screening aid for scouts to check, not as evidence of mispricing.",
+   "rule": "Forward test against Transfermarkt: validated if rank correlation >= 0.10 and positive in >= 6 seasons; partially validated if >= 0.05; else not validated."
+  },
+  {
+   "key": "age_outlook",
+   "label": "Squad ageing projection",
+   "status": "exploratory",
+   "status_label": "Exploratory",
+   "summary": "Players improve until about 22 and decline steadily after 28 on average, but at the level of one player the noise is far larger than that trend.",
+   "evidence": [
+    "Out-of-time error 8.52 points vs 8.5 for assuming no change (-0.3% difference, n=8,642)"
+   ],
+   "limits": "The Squad Audit age profile (how old the squad will be) is arithmetic and reliable; the performance projection is shown as indicative only.",
+   "rule": "Partially validated if an age curve learned only from earlier seasons beats 'no change' on next-season error by >= 5%; otherwise exploratory."
+  },
+  {
+   "key": "role_fit",
+   "label": "Role fit",
+   "status": "exploratory",
+   "status_label": "Exploratory",
+   "summary": "Describes how closely a player's profile matches a role template. It has not been shown to predict how much a player plays once his overall level is accounted for.",
+   "evidence": [
+    "Mean partial correlation with next-season minutes (controlling for performance): 0.052 across 17 roles"
+   ],
+   "limits": "",
+   "rule": "Partially validated if the mean partial correlation with next-season minutes (controlling for performance) >= 0.15; else exploratory."
+  }
+ ],
+ "status_counts": {
+  "validated": 2,
+  "partially_validated": 5,
+  "exploratory": 3,
+  "not_validated": 1
+ },
+ "sections": {
+  "expected_12m": {
+   "n": 4446,
+   "blend": {
+    "mae": 9.1,
+    "correlation": 0.542
+   },
+   "naive_last": {
+    "mae": 9.95,
+    "correlation": 0.503
+   },
+   "history_mean": {
+    "mae": 9.44,
+    "correlation": 0.513
+   },
+   "improvement_vs_naive_pct": 8.5
+  },
+  "horizons": {
+   "n": 6162,
+   "min_seasons_required": 4,
+   "1m_season": {
+    "n": 3081,
+    "MAE": 8.91,
+    "correlation": 0.559
+   },
+   "2m_season": {
+    "n": 3081,
+    "MAE": 8.99,
+    "correlation": 0.533
+   }
+  },
+  "development_potential": {
+   "n": 18735,
+   "mae_development_potential": 16.0,
+   "mae_naive_current": 10.19,
+   "mean_bias_points": 14.72,
+   "correlation": 0.465
+  },
+  "events": {
+   "n": 16012,
+   "test_seasons": 7,
+   "low_evidence_share": 0.123,
+   "breakout": {
+    "observed_base_rate": 0.303,
+    "auc": 0.631,
+    "brier_model": 0.2148,
+    "brier_baseline": 0.2113,
+    "top_quintile_lift": 1.48,
+    "max_calibration_gap": 0.072,
+    "calibration": [
+     {
+      "bin": 1,
+      "n": 3203,
+      "mean_predicted": 0.129,
+      "observed_rate": 0.19
+     },
+     {
+      "bin": 2,
+      "n": 3202,
+      "mean_predicted": 0.208,
+      "observed_rate": 0.209
+     },
+     {
+      "bin": 3,
+      "n": 3202,
+      "mean_predicted": 0.298,
+      "observed_rate": 0.278
+     },
+     {
+      "bin": 4,
+      "n": 3202,
+      "mean_predicted": 0.378,
+      "observed_rate": 0.39
+     },
+     {
+      "bin": 5,
+      "n": 3203,
+      "mean_predicted": 0.52,
+      "observed_rate": 0.448
+     }
+    ]
+   },
+   "decline": {
+    "observed_base_rate": 0.319,
+    "auc": 0.616,
+    "brier_model": 0.214,
+    "brier_baseline": 0.218,
+    "top_quintile_lift": 1.46,
+    "max_calibration_gap": 0.081,
+    "calibration": [
+     {
+      "bin": 1,
+      "n": 3203,
+      "mean_predicted": 0.14,
+      "observed_rate": 0.221
+     },
+     {
+      "bin": 2,
+      "n": 3202,
+      "mean_predicted": 0.261,
+      "observed_rate": 0.247
+     },
+     {
+      "bin": 3,
+      "n": 3202,
+      "mean_predicted": 0.329,
+      "observed_rate": 0.282
+     },
+     {
+      "bin": 4,
+      "n": 3202,
+      "mean_predicted": 0.4,
+      "observed_rate": 0.38
+     },
+     {
+      "bin": 5,
+      "n": 3203,
+      "mean_predicted": 0.478,
+      "observed_rate": 0.464
+     }
+    ]
+   }
+  },
+  "score_stability": {
+   "n": 12114,
+   "min_minutes": 900,
+   "overall_spearman": 0.556,
+   "by_position": [
+    {
+     "position": "CM",
+     "n": 2708,
+     "spearman": 0.569
+    },
+    {
+     "position": "CB",
+     "n": 2489,
+     "spearman": 0.471
+    },
+    {
+     "position": "ST",
+     "n": 1303,
+     "spearman": 0.522
+    },
+    {
+     "position": "CDM",
+     "n": 1136,
+     "spearman": 0.559
+    },
+    {
+     "position": "GK",
+     "n": 959,
+     "spearman": 0.146
+    },
+    {
+     "position": "RB",
+     "n": 942,
+     "spearman": 0.543
+    },
+    {
+     "position": "LB",
+     "n": 905,
+     "spearman": 0.568
+    },
+    {
+     "position": "CAM",
+     "n": 690,
+     "spearman": 0.601
+    },
+    {
+     "position": "RW",
+     "n": 353,
+     "spearman": 0.585
+    },
+    {
+     "position": "LW",
+     "n": 306,
+     "spearman": 0.529
+    },
+    {
+     "position": "CF",
+     "n": 132,
+     "spearman": 0.64
+    },
+    {
+     "position": "RWB",
+     "n": 113,
+     "spearman": 0.579
+    }
+   ],
+   "by_league": [
+    {
+     "league": "Serie A",
+     "n": 1449,
+     "spearman": 0.611
+    },
+    {
+     "league": "Premier League",
+     "n": 1426,
+     "spearman": 0.63
+    },
+    {
+     "league": "Major League Soccer",
+     "n": 1424,
+     "spearman": 0.556
+    },
+    {
+     "league": "La Liga",
+     "n": 1378,
+     "spearman": 0.641
+    },
+    {
+     "league": "Bundesliga",
+     "n": 1254,
+     "spearman": 0.587
+    },
+    {
+     "league": "Ligue 1",
+     "n": 1186,
+     "spearman": 0.591
+    },
+    {
+     "league": "Eredivisie",
+     "n": 1075,
+     "spearman": 0.542
+    },
+    {
+     "league": "Super Lig",
+     "n": 982,
+     "spearman": 0.367
+    },
+    {
+     "league": "Jupiler Pro League",
+     "n": 981,
+     "spearman": 0.522
+    },
+    {
+     "league": "Liga Portugal",
+     "n": 959,
+     "spearman": 0.452
+    }
+   ]
+  },
+  "market": {
+   "available": true,
+   "n": 25674,
+   "score_vs_market": [
+    {
+     "measure": "performance_score",
+     "spearman_vs_market_value": 0.276,
+     "n": 25530
+    },
+    {
+     "measure": "adjusted_performance_score",
+     "spearman_vs_market_value": 0.418,
+     "n": 25530
+    },
+    {
+     "measure": "fifa_overall_reference",
+     "spearman_vs_market_value": 0.827,
+     "n": 25530
+    }
+   ],
+   "score_vs_market_by_position": [
+    {
+     "position": "CM",
+     "spearman": 0.334,
+     "n": 5833
+    },
+    {
+     "position": "CB",
+     "spearman": 0.085,
+     "n": 4851
+    },
+    {
+     "position": "ST",
+     "spearman": 0.356,
+     "n": 3239
+    },
+    {
+     "position": "CDM",
+     "spearman": 0.191,
+     "n": 2255
+    },
+    {
+     "position": "GK",
+     "spearman": 0.182,
+     "n": 2075
+    },
+    {
+     "position": "LB",
+     "spearman": 0.253,
+     "n": 1947
+    },
+    {
+     "position": "RB",
+     "spearman": 0.313,
+     "n": 1926
+    },
+    {
+     "position": "CAM",
+     "spearman": 0.48,
+     "n": 1461
+    },
+    {
+     "position": "RW",
+     "spearman": 0.532,
+     "n": 753
+    },
+    {
+     "position": "LW",
+     "spearman": 0.555,
+     "n": 727
+    },
+    {
+     "position": "CF",
+     "spearman": 0.467,
+     "n": 197
+    },
+    {
+     "position": "RWB",
+     "spearman": 0.158,
+     "n": 164
+    },
+    {
+     "position": "LWB",
+     "spearman": 0.139,
+     "n": 102
+    }
+   ],
+   "fair_value_vs_market": {
+    "n": 25674,
+    "spearman_fair_value": 0.896,
+    "spearman_fifa_value": 0.893,
+    "median_fair_to_market_ratio": 1.41,
+    "median_abs_pct_error_fair": 51.7,
+    "median_abs_pct_error_fifa": 50.0
+   },
+   "value_gap_forward": {
+    "n": 25390,
+    "buckets": [
+     {
+      "bucket": "Overvalued (gap < -20%)",
+      "n": 1072,
+      "median_12m_change_pct": 0.0,
+      "mean_12m_change_pct": 36.0
+     },
+     {
+      "bucket": "Fairly valued",
+      "n": 21205,
+      "median_12m_change_pct": 0.0,
+      "mean_12m_change_pct": 22.9
+     },
+     {
+      "bucket": "Undervalued (gap > +20%)",
+      "n": 3113,
+      "median_12m_change_pct": 0.0,
+      "mean_12m_change_pct": 47.2
+     }
+    ],
+    "spearman_within_season_and_age_band": 0.013,
+    "n_cells": 25390,
+    "spearman_reliable_samples_only": 0.026,
+    "seasons_with_positive_relationship": "3/8"
+   }
+  },
+  "risk": {
+   "n_transitions": 18735,
+   "summary_by_risk_tier": [
+    {
+     "tier": "LOW",
+     "n": 15108.0,
+     "mean_performance_delta": -0.44,
+     "median_performance_delta": -0.4,
+     "pct_declined": 51.6,
+     "mean_minutes_delta": -193.13
+    },
+    {
+     "tier": "MEDIUM",
+     "n": 3011.0,
+     "mean_performance_delta": -0.21,
+     "median_performance_delta": 0.0,
+     "pct_declined": 49.98,
+     "mean_minutes_delta": 511.91
+    },
+    {
+     "tier": "HIGH",
+     "n": 616.0,
+     "mean_performance_delta": 0.67,
+     "median_performance_delta": 0.5,
+     "pct_declined": 49.35,
+     "mean_minutes_delta": 727.48
+    }
+   ]
+  },
+  "role_fit": [
+   {
+    "role": "Sweeper Keeper",
+    "n": 1513,
+    "raw_correlation_role_fit_vs_future_minutes": 0.195,
+    "raw_correlation_performance_vs_future_minutes": 0.19,
+    "partial_correlation_role_fit_vs_future_minutes_controlling_for_performance": 0.063,
+    "tested_positions": [
+     "GK"
+    ]
+   },
+   {
+    "role": "Traditional Goalkeeper",
+    "n": 1513,
+    "raw_correlation_role_fit_vs_future_minutes": 0.285,
+    "raw_correlation_performance_vs_future_minutes": 0.19,
+    "partial_correlation_role_fit_vs_future_minutes_controlling_for_performance": 0.232,
+    "tested_positions": [
+     "GK"
+    ]
+   },
+   {
+    "role": "Progressive Centre Back",
+    "n": 3393,
+    "raw_correlation_role_fit_vs_future_minutes": 0.053,
+    "raw_correlation_performance_vs_future_minutes": 0.044,
+    "partial_correlation_role_fit_vs_future_minutes_controlling_for_performance": 0.031,
+    "tested_positions": [
+     "CB"
+    ]
+   },
+   {
+    "role": "Stopper Centre Back",
+    "n": 3393,
+    "raw_correlation_role_fit_vs_future_minutes": 0.038,
+    "raw_correlation_performance_vs_future_minutes": 0.044,
+    "partial_correlation_role_fit_vs_future_minutes_controlling_for_performance": 0.019,
+    "tested_positions": [
+     "CB"
+    ]
+   },
+   {
+    "role": "Attacking Fullback",
+    "n": 2995,
+    "raw_correlation_role_fit_vs_future_minutes": 0.095,
+    "raw_correlation_performance_vs_future_minutes": 0.115,
+    "partial_correlation_role_fit_vs_future_minutes_controlling_for_performance": 0.043,
+    "tested_positions": [
+     "LB",
+     "RB",
+     "LWB",
+     "RWB"
+    ]
+   },
+   {
+    "role": "Defensive Fullback",
+    "n": 2995,
+    "raw_correlation_role_fit_vs_future_minutes": 0.064,
+    "raw_correlation_performance_vs_future_minutes": 0.115,
+    "partial_correlation_role_fit_vs_future_minutes_controlling_for_performance": -0.003,
+    "tested_positions": [
+     "LB",
+     "RB",
+     "LWB",
+     "RWB"
+    ]
+   },
+   {
+    "role": "Ball-Winning 6",
+    "n": 1422,
+    "raw_correlation_role_fit_vs_future_minutes": 0.063,
+    "raw_correlation_performance_vs_future_minutes": 0.096,
+    "partial_correlation_role_fit_vs_future_minutes_controlling_for_performance": 0.014,
+    "tested_positions": [
+     "CDM"
+    ]
+   },
+   {
+    "role": "Deep-Lying Playmaker",
+    "n": 1422,
+    "raw_correlation_role_fit_vs_future_minutes": 0.115,
+    "raw_correlation_performance_vs_future_minutes": 0.096,
+    "partial_correlation_role_fit_vs_future_minutes_controlling_for_performance": 0.083,
+    "tested_positions": [
+     "CDM"
+    ]
+   },
+   {
+    "role": "Box-to-Box Midfielder",
+    "n": 3498,
+    "raw_correlation_role_fit_vs_future_minutes": 0.081,
+    "raw_correlation_performance_vs_future_minutes": 0.126,
+    "partial_correlation_role_fit_vs_future_minutes_controlling_for_performance": 0.011,
+    "tested_positions": [
+     "CM"
+    ]
+   },
+   {
+    "role": "Tempo-Controlling Midfielder",
+    "n": 3498,
+    "raw_correlation_role_fit_vs_future_minutes": 0.095,
+    "raw_correlation_performance_vs_future_minutes": 0.126,
+    "partial_correlation_role_fit_vs_future_minutes_controlling_for_performance": 0.034,
+    "tested_positions": [
+     "CM"
+    ]
+   },
+   {
+    "role": "Creative 10",
+    "n": 765,
+    "raw_correlation_role_fit_vs_future_minutes": 0.135,
+    "raw_correlation_performance_vs_future_minutes": 0.174,
+    "partial_correlation_role_fit_vs_future_minutes_controlling_for_performance": 0.005,
+    "tested_positions": [
+     "CAM"
+    ]
+   },
+   {
+    "role": "Shadow Striker",
+    "n": 765,
+    "raw_correlation_role_fit_vs_future_minutes": 0.178,
+    "raw_correlation_performance_vs_future_minutes": 0.174,
+    "partial_correlation_role_fit_vs_future_minutes_controlling_for_performance": 0.075,
+    "tested_positions": [
+     "CAM"
+    ]
+   },
+   {
+    "role": "Inside Forward",
+    "n": 742,
+    "raw_correlation_role_fit_vs_future_minutes": 0.222,
+    "raw_correlation_performance_vs_future_minutes": 0.224,
+    "partial_correlation_role_fit_vs_future_minutes_controlling_for_performance": 0.067,
+    "tested_positions": [
+     "LW",
+     "RW"
+    ]
+   },
+   {
+    "role": "Wide Playmaker",
+    "n": 1612,
+    "raw_correlation_role_fit_vs_future_minutes": 0.14,
+    "raw_correlation_performance_vs_future_minutes": 0.179,
+    "partial_correlation_role_fit_vs_future_minutes_controlling_for_performance": 0.026,
+    "tested_positions": [
+     "LW",
+     "RW",
+     "CAM"
+    ]
+   },
+   {
+    "role": "Poacher",
+    "n": 2193,
+    "raw_correlation_role_fit_vs_future_minutes": 0.144,
+    "raw_correlation_performance_vs_future_minutes": 0.18,
+    "partial_correlation_role_fit_vs_future_minutes_controlling_for_performance": -0.063,
+    "tested_positions": [
+     "ST"
+    ]
+   },
+   {
+    "role": "Target Forward",
+    "n": 2193,
+    "raw_correlation_role_fit_vs_future_minutes": 0.229,
+    "raw_correlation_performance_vs_future_minutes": 0.18,
+    "partial_correlation_role_fit_vs_future_minutes_controlling_for_performance": 0.146,
+    "tested_positions": [
+     "ST"
+    ]
+   },
+   {
+    "role": "Complete Forward",
+    "n": 2193,
+    "raw_correlation_role_fit_vs_future_minutes": 0.207,
+    "raw_correlation_performance_vs_future_minutes": 0.18,
+    "partial_correlation_role_fit_vs_future_minutes_controlling_for_performance": 0.109,
+    "tested_positions": [
+     "ST"
+    ]
+   }
+  ],
+  "sensitivity": {
+   "performance_score_by_position": [
+    {
+     "position": "GK",
+     "mean_rank_correlation": 1.0,
+     "min_rank_correlation": 0.998,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "position": "CB",
+     "mean_rank_correlation": 0.995,
+     "min_rank_correlation": 0.983,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "position": "LB",
+     "mean_rank_correlation": 0.996,
+     "min_rank_correlation": 0.988,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "position": "RB",
+     "mean_rank_correlation": 0.996,
+     "min_rank_correlation": 0.99,
+     "top1_stability_rate": 0.867
+    },
+    {
+     "position": "LWB",
+     "mean_rank_correlation": 0.995,
+     "min_rank_correlation": 0.982,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "position": "RWB",
+     "mean_rank_correlation": 0.994,
+     "min_rank_correlation": 0.98,
+     "top1_stability_rate": 0.867
+    },
+    {
+     "position": "CDM",
+     "mean_rank_correlation": 0.997,
+     "min_rank_correlation": 0.988,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "position": "CM",
+     "mean_rank_correlation": 0.995,
+     "min_rank_correlation": 0.986,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "position": "CAM",
+     "mean_rank_correlation": 0.998,
+     "min_rank_correlation": 0.996,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "position": "LW",
+     "mean_rank_correlation": 0.998,
+     "min_rank_correlation": 0.995,
+     "top1_stability_rate": 0.833
+    },
+    {
+     "position": "RW",
+     "mean_rank_correlation": 0.998,
+     "min_rank_correlation": 0.994,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "position": "ST",
+     "mean_rank_correlation": 0.999,
+     "min_rank_correlation": 0.995,
+     "top1_stability_rate": 0.633
+    },
+    {
+     "position": "CF",
+     "mean_rank_correlation": 0.998,
+     "min_rank_correlation": 0.992,
+     "top1_stability_rate": 0.933
+    }
+   ],
+   "role_fit_by_role": [
+    {
+     "role": "Sweeper Keeper",
+     "mean_rank_correlation": 0.983,
+     "min_rank_correlation": 0.976,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "role": "Traditional Goalkeeper",
+     "mean_rank_correlation": 0.98,
+     "min_rank_correlation": 0.971,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "role": "Progressive Centre Back",
+     "mean_rank_correlation": 0.979,
+     "min_rank_correlation": 0.977,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "role": "Stopper Centre Back",
+     "mean_rank_correlation": 0.982,
+     "min_rank_correlation": 0.979,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "role": "Attacking Fullback",
+     "mean_rank_correlation": 0.983,
+     "min_rank_correlation": 0.982,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "role": "Defensive Fullback",
+     "mean_rank_correlation": 0.982,
+     "min_rank_correlation": 0.978,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "role": "Ball-Winning 6",
+     "mean_rank_correlation": 0.98,
+     "min_rank_correlation": 0.978,
+     "top1_stability_rate": 0.6
+    },
+    {
+     "role": "Deep-Lying Playmaker",
+     "mean_rank_correlation": 0.981,
+     "min_rank_correlation": 0.979,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "role": "Box-to-Box Midfielder",
+     "mean_rank_correlation": 0.978,
+     "min_rank_correlation": 0.973,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "role": "Tempo-Controlling Midfielder",
+     "mean_rank_correlation": 0.981,
+     "min_rank_correlation": 0.977,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "role": "Creative 10",
+     "mean_rank_correlation": 0.983,
+     "min_rank_correlation": 0.982,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "role": "Shadow Striker",
+     "mean_rank_correlation": 0.981,
+     "min_rank_correlation": 0.979,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "role": "Inside Forward",
+     "mean_rank_correlation": 0.98,
+     "min_rank_correlation": 0.965,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "role": "Wide Playmaker",
+     "mean_rank_correlation": 0.983,
+     "min_rank_correlation": 0.982,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "role": "Poacher",
+     "mean_rank_correlation": 0.982,
+     "min_rank_correlation": 0.98,
+     "top1_stability_rate": 0.8
+    },
+    {
+     "role": "Target Forward",
+     "mean_rank_correlation": 0.982,
+     "min_rank_correlation": 0.979,
+     "top1_stability_rate": 1.0
+    },
+    {
+     "role": "Complete Forward",
+     "mean_rank_correlation": 0.978,
+     "min_rank_correlation": 0.963,
+     "top1_stability_rate": 0.8
+    }
+   ],
+   "worst_rank_correlation": 0.963
+  },
+  "age_curve": {
+   "n": 8642,
+   "mae_age_curve": 8.52,
+   "mae_no_change": 8.5,
+   "improvement_pct": -0.3
+  }
+ }
+}

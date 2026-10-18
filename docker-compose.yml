@@ -1,0 +1,48 @@
+# ScoutIQ API with PostgreSQL.
+#   1. cp .env.example .env   and set real values (at least POSTGRES_PASSWORD, and SCOUTIQ_AUTH_* for sign-in)
+#   2. docker compose up -d --build
+#   3. First run only, load the data:  docker compose run --rm api python -m src.db.ingest
+# The database is not published to the host; only the API port is.
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: scoutiq-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: scoutiq
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: scoutiq
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scoutiq -d scoutiq"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  api:
+    build: .
+    container_name: scoutiq-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8010:8010"
+    environment:
+      DATABASE_URL: postgresql+psycopg://scoutiq:${POSTGRES_PASSWORD}@db:5432/scoutiq
+      SCOUTIQ_AUTH_MODE: ${SCOUTIQ_AUTH_MODE:-off}
+      SCOUTIQ_AUTH_SECRET: ${SCOUTIQ_AUTH_SECRET:-}
+      SCOUTIQ_BOOTSTRAP_ADMIN_USER: ${SCOUTIQ_BOOTSTRAP_ADMIN_USER:-}
+      SCOUTIQ_BOOTSTRAP_ADMIN_PASSWORD: ${SCOUTIQ_BOOTSTRAP_ADMIN_PASSWORD:-}
+      SCOUTIQ_API_KEY: ${SCOUTIQ_API_KEY:-}
+      SCOUTIQ_CORS_ORIGINS: ${SCOUTIQ_CORS_ORIGINS:-http://localhost:3000}
+      SCOUTIQ_ENABLE_DOCS: ${SCOUTIQ_ENABLE_DOCS:-true}
+      SCOUTIQ_HSTS: ${SCOUTIQ_HSTS:-off}
+      SCOUTIQ_TRUST_PROXY: ${SCOUTIQ_TRUST_PROXY:-off}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      - ./data:/app/data
+
+volumes:
+  pgdata:

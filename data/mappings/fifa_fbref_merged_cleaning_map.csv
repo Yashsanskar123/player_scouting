@@ -1,0 +1,136 @@
+original_column,clean_column,notes
+fifa_version,fifa_version,standardized column name
+short_name,short_name,standardized column name
+long_name,long_name,standardized column name
+player_positions,player_positions,standardized column name
+overall,overall,standardized column name
+potential,potential,standardized column name
+value_eur,value_eur,standardized column name
+wage_eur,wage_eur,standardized column name
+age_fifa,age_fifa,standardized column name
+height_cm,height_cm,standardized column name
+weight_kg,weight_kg,standardized column name
+club_team_id,club_team_id,standardized column name
+club_name,club_name,standardized column name
+league_id,league_id,standardized column name
+league_name,league_name,standardized column name
+club_jersey_number,club_jersey_number,standardized column name
+nationality_name,nationality_name,standardized column name
+preferred_foot,preferred_foot,standardized column name
+weak_foot,weak_foot,standardized column name
+skill_moves,skill_moves,standardized column name
+international_reputation,international_reputation,standardized column name
+body_type,body_type,standardized column name
+pace,pace,standardized column name
+shooting,shooting,standardized column name
+passing,passing,standardized column name
+dribbling,dribbling,standardized column name
+defending,defending,standardized column name
+physic,physic,standardized column name
+goalkeeping_diving,goalkeeping_diving,standardized column name
+goalkeeping_handling,goalkeeping_handling,standardized column name
+goalkeeping_kicking,goalkeeping_kicking,standardized column name
+goalkeeping_positioning,goalkeeping_positioning,standardized column name
+goalkeeping_reflexes,goalkeeping_reflexes,standardized column name
+goalkeeping_speed,goalkeeping_speed,standardized column name
+born_fifa,born_fifa,standardized column name
+season,season,standardized column name
+player,player,standardized column name
+Playing Time_MP,playing_time_mp,standardized column name
+Playing Time_Starts,playing_time_starts,standardized column name
+Playing Time_Min,playing_time_min,standardized column name
+Playing Time_90s,playing_time_90s,standardized column name
+league,league,standardized column name
+team,team,standardized column name
+nation,nation,standardized column name
+pos,pos,standardized column name
+age_fbref,age_fbref,standardized column name
+born_fbref,born_fbref,standardized column name
+Per 90 Minutes_PKatt,per_90_minutes_pkatt,standardized column name
+Per 90 Minutes_CrdY,per_90_minutes_crd_y,standardized column name
+Per 90 Minutes_CrdR,per_90_minutes_crd_r,standardized column name
+Per 90 Minutes_PrgC,per_90_minutes_prg_c,standardized column name
+Per 90 Minutes_PrgP,per_90_minutes_prg_p,standardized column name
+Per 90 Minutes_PrgR,per_90_minutes_prg_r,standardized column name
+Per 90 Minutes_Gls,per_90_minutes_gls,standardized column name
+Per 90 Minutes_Ast,per_90_minutes_ast,standardized column name
+Per 90 Minutes_G+A,per_90_minutes_g_a,standardized column name
+Per 90 Minutes_G-PK,per_90_minutes_g_pk,standardized column name
+Per 90 Minutes_G+A-PK,per_90_minutes_g_a_pk,standardized column name
+Per 90 Minutes_xG,per_90_minutes_x_g,standardized column name
+Per 90 Minutes_xAG,per_90_minutes_x_ag,standardized column name
+Per 90 Minutes_xG+xAG,per_90_minutes_x_g_x_ag,standardized column name
+Per 90 Minutes_npxG,per_90_minutes_npx_g,standardized column name
+Per 90 Minutes_npxG+xAG,per_90_minutes_npx_g_x_ag,standardized column name
+Standard_SoT%,standard_so_tpct,standardized column name
+Standard_Sh/90,standard_sh_90,standardized column name
+Standard_SoT/90,standard_so_t_90,standardized column name
+Standard_G/Sh,standard_g_sh,standardized column name
+Standard_G/SoT,standard_g_so_t,standardized column name
+Standard_Dist,standard_dist,standardized column name
+Expected_npxG/Sh,expected_npx_g_sh,standardized column name
+Per 90 Minutes_Total_Cmp,per_90_minutes_total_cmp,standardized column name
+Per 90 Minutes_Total_Att,per_90_minutes_total_att,standardized column name
+Total_Cmp%,total_cmppct,standardized column name
+Per 90 Minutes_Total_TotDist,per_90_minutes_total_tot_dist,standardized column name
+Per 90 Minutes_Total_PrgDist,per_90_minutes_total_prg_dist,standardized column name
+Per 90 Minutes_Short_Cmp,per_90_minutes_short_cmp,standardized column name
+Per 90 Minutes_Short_Att,per_90_minutes_short_att,standardized column name
+Short_Cmp%,short_cmppct,standardized column name
+Per 90 Minutes_Medium_Cmp,per_90_minutes_medium_cmp,standardized column name
+Per 90 Minutes_Medium_Att,per_90_minutes_medium_att,standardized column name
+Medium_Cmp%,medium_cmppct,standardized column name
+Per 90 Minutes_Long_Cmp,per_90_minutes_long_cmp,standardized column name
+Per 90 Minutes_Long_Att,per_90_minutes_long_att,standardized column name
+Long_Cmp%,long_cmppct,standardized column name
+Per 90 Minutes_Expected_xA,per_90_minutes_expected_x_a,standardized column name
+Per 90 Minutes_Expected_A-xAG,per_90_minutes_expected_a_x_ag,standardized column name
+Per 90 Minutes_KP,per_90_minutes_kp,standardized column name
+Per 90 Minutes_1/3,per_90_minutes_1_3,standardized column name
+Per 90 Minutes_PPA,per_90_minutes_ppa,standardized column name
+Per 90 Minutes_CrsPA,per_90_minutes_crs_pa,standardized column name
+SCA_SCA90,sca_sca90,standardized column name
+Per 90 Minutes_SCA Types_PassLive,per_90_minutes_sca_types_pass_live,standardized column name
+Per 90 Minutes_SCA Types_PassDead,per_90_minutes_sca_types_pass_dead,standardized column name
+Per 90 Minutes_SCA Types_TO,per_90_minutes_sca_types_to,standardized column name
+Per 90 Minutes_SCA Types_Sh,per_90_minutes_sca_types_sh,standardized column name
+Per 90 Minutes_SCA Types_Fld,per_90_minutes_sca_types_fld,standardized column name
+Per 90 Minutes_SCA Types_Def,per_90_minutes_sca_types_def,standardized column name
+GCA_GCA90,gca_gca90,standardized column name
+Per 90 Minutes_GCA Types_PassLive,per_90_minutes_gca_types_pass_live,standardized column name
+Per 90 Minutes_GCA Types_PassDead,per_90_minutes_gca_types_pass_dead,standardized column name
+Per 90 Minutes_GCA Types_TO,per_90_minutes_gca_types_to,standardized column name
+Per 90 Minutes_GCA Types_Sh,per_90_minutes_gca_types_sh,standardized column name
+Per 90 Minutes_GCA Types_Fld,per_90_minutes_gca_types_fld,standardized column name
+Per 90 Minutes_GCA Types_Def,per_90_minutes_gca_types_def,standardized column name
+Per 90 Minutes_Tackles_Tkl,per_90_minutes_tackles_tkl,standardized column name
+Per 90 Minutes_Tackles_TklW,per_90_minutes_tackles_tkl_w,standardized column name
+Per 90 Minutes_Tackles_Def 3rd,per_90_minutes_tackles_def_3rd,standardized column name
+Per 90 Minutes_Tackles_Mid 3rd,per_90_minutes_tackles_mid_3rd,standardized column name
+Per 90 Minutes_Tackles_Att 3rd,per_90_minutes_tackles_att_3rd,standardized column name
+Per 90 Minutes_Challenges_Tkl,per_90_minutes_challenges_tkl,standardized column name
+Per 90 Minutes_Challenges_Att,per_90_minutes_challenges_att,standardized column name
+Challenges_Tkl%,challenges_tklpct,standardized column name
+Per 90 Minutes_Challenges_Lost,per_90_minutes_challenges_lost,standardized column name
+Per 90 Minutes_Blocks_Blocks,per_90_minutes_blocks_blocks,standardized column name
+Per 90 Minutes_Blocks_Sh,per_90_minutes_blocks_sh,standardized column name
+Per 90 Minutes_Blocks_Pass,per_90_minutes_blocks_pass,standardized column name
+Per 90 Minutes_Int,per_90_minutes_int,standardized column name
+Per 90 Minutes_Tkl+Int,per_90_minutes_tkl_int,standardized column name
+Per 90 Minutes_Clr,per_90_minutes_clr,standardized column name
+Per 90 Minutes_Err,per_90_minutes_err,standardized column name
+Performance_GA90,performance_ga90,standardized column name
+Per 90 Minutes_Performance_SoTA,per_90_minutes_performance_so_ta,standardized column name
+Per 90 Minutes_Performance_Saves,per_90_minutes_performance_saves,standardized column name
+Performance_Save%,performance_savepct,standardized column name
+Per 90 Minutes_Performance_W,per_90_minutes_performance_w,standardized column name
+Per 90 Minutes_Performance_D,per_90_minutes_performance_d,standardized column name
+Per 90 Minutes_Performance_L,per_90_minutes_performance_l,standardized column name
+Per 90 Minutes_Performance_CS,per_90_minutes_performance_cs,standardized column name
+Performance_CS%,performance_cspct,standardized column name
+Per 90 Minutes_Penalty Kicks_PKatt,per_90_minutes_penalty_kicks_pkatt,standardized column name
+Per 90 Minutes_Penalty Kicks_PKA,per_90_minutes_penalty_kicks_pka,standardized column name
+Per 90 Minutes_Penalty Kicks_PKsv,per_90_minutes_penalty_kicks_pksv,standardized column name
+Per 90 Minutes_Penalty Kicks_PKm,per_90_minutes_penalty_kicks_pkm,standardized column name
+Penalty Kicks_Save%,penalty_kicks_savepct,standardized column name
+name_parts,name_parts,standardized column name

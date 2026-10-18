@@ -1,0 +1,108 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html, body {
+  background-color: #0B0F14;
+  color: #E7ECF2;
+}
+
+* {
+  border-color: #1D2530;
+}
+
+::selection {
+  background-color: #D9A44133;
+  color: #E7ECF2;
+}
+
+/* visible keyboard focus, per accessibility floor */
+:focus-visible {
+  outline: 2px solid #D9A441;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.analytics-panel {
+  border: 1px solid #1D2530;
+  background: #10151C;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid #2A3441;
+  border-radius: 0.5rem;
+  color: #AEB7C3;
+  font-size: 0.72rem;
+  transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease;
+}
+
+.action-button:hover {
+  border-color: #D9A441;
+  color: #D9A441;
+}
+
+.action-button-primary {
+  border-color: #D9A44166;
+  background: #D9A41112;
+  color: #D9A441;
+}
+
+.pitch-grass {
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.025) 50%, transparent 50%),
+    linear-gradient(rgba(255,255,255,.018) 50%, transparent 50%),
+    #10251f;
+  background-size: 10% 100%, 100% 12%, auto;
+}
+
+.pitch-player {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 5px 7px;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 9px;
+  background: rgba(8, 15, 13, .88);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 8px 18px rgba(0,0,0,.18);
+}
+
+.pitch-player-filled { border-color: rgba(217,164,65,.42); }
+.pitch-player-empty { opacity: .58; border-style: dashed; }
+
+.pitch-avatar {
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(217,164,65,.16);
+  border: 1px solid rgba(217,164,65,.5);
+  color: #F3D28A;
+  font-size: 8px;
+  font-weight: 700;
+}

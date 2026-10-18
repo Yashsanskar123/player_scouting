@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "active": "FC Barcelona",
+  "clubs": {
+    "FC Barcelona": {
+      "club_name": "FC Barcelona",
+      "formation": "4-3-3",
+      "transfer_budget_eur": 1000000000.0,
+      "wage_budget_eur": null,
+      "updated_at": "2026-10-18T07:15:08+00:00"
+    }
+  }
+}

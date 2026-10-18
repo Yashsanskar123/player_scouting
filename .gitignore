@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+data/scoutiq.db
+node_modules/
+.next/
+.env.local
+*.log
+.env
+.env.*
+!.env.example
