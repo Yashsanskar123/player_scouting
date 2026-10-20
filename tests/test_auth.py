@@ -3,6 +3,7 @@ import os
 
 import pytest
 from fastapi.testclient import TestClient
+from src.auth.permissions import classify
 
 
 def _fresh_app():
@@ -40,6 +41,13 @@ def test_auth_accepts_correct_key_when_configured(monkeypatch):
     client = TestClient(_fresh_app())
     resp = client.get("/health", headers={"X-API-Key": "test-secret-key"})
     assert resp.status_code == 200
+
+
+def test_pdf_exports_are_readable_and_audited():
+    board = classify("GET", "/api/contracts/board/export.pdf")
+    shortlist = classify("GET", "/api/recruitment/shortlists/42/export.pdf")
+    assert board.permission == "read" and board.action == "export.contract_board"
+    assert shortlist.permission == "read" and shortlist.action == "export.shortlist_pdf"
 
 
 @pytest.fixture(autouse=True)

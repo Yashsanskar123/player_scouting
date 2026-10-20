@@ -99,6 +99,49 @@ def test_base_pool_and_segments():
     )
 
 
+def test_default_discovery_pool_does_not_require_positive_value_gap():
+    df = _df()
+    df.loc[df["player_id"] == "c", "performance_score"] = 70
+    df.loc[df["player_id"] == "c", "value_gap_pct"] = -15
+
+    result = build_market_intelligence(df)
+
+    assert result["total"] == 3
+    assert "c" in {row["player_id"] for row in result["results"]}
+
+
+def test_performance_segment_does_not_require_positive_value_gap():
+    df = _df()
+    df.loc[df["player_id"] == "c", "performance_score"] = 80
+    df.loc[df["player_id"] == "c", "value_gap_pct"] = -15
+
+    result = build_market_intelligence(df, segment="performance")
+
+    assert result["selected_total"] == 3
+    assert "c" in {row["player_id"] for row in result["results"]}
+
+
+def test_default_discovery_pool_does_not_require_positive_fair_value_gap():
+    df = _df()
+    df.loc[df.player_id == "b", "value_gap_pct"] = -35
+    df.loc[df.player_id == "b", "fair_value_eur"] = 13_000_000
+    result = build_market_intelligence(df, min_performance_score=60)
+    ids = {row["player_id"] for row in result["results"]}
+    assert "b" in ids
+    assert (
+        "failed fair-value gap signal is not part of the score"
+        in result["methodology"]["opportunity_score"]
+    )
+
+
+def test_value_segment_remains_explicitly_gap_based():
+    result = build_market_intelligence(_df(), segment="value")
+    assert all(
+        (row.get("value_gap_pct") or 0) >= 20
+        for row in result["results"]
+    )
+
+
 def test_filters():
 
     result = build_market_intelligence(

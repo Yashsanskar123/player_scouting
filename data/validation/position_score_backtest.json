@@ -1,0 +1,29 @@
+{
+  "available": true,
+  "method": "Adjacent observed seasons; prior-season score predicts next-season minutes/performance; market-value correlation is diagnostic only, not the target.",
+  "min_minutes_previous_season": 450,
+  "n_pairs": 15447,
+  "n_seasons": 7,
+  "positions": [
+    {
+      "position": "GK",
+      "n_pairs": 1144,
+      "available": true,
+      "spearman_score_vs_next_minutes": 0.1694,
+      "spearman_score_vs_next_performance": 0.1662,
+      "spearman_score_vs_market_value": 0.1995,
+      "year_to_year_score_stability": 0.1662,
+      "n_seasons": 7
+    },
+    {
+      "position": "CB",
+      "n_pairs": 3004,
+      "available": true,
+      "spearman_score_vs_next_minutes": 0.0322,
+      "spearman_score_vs_next_performance": 0.431,
+      "spearman_score_vs_market_value": 0.1003,
+      "year_to_year_score_stability": 0.431,
+      "n_seasons": 7
+    }
+  ]
+}

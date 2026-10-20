@@ -689,11 +689,102 @@ def _is_latest_season(season: int | None) -> bool:
     return season is None or season == store.current_season()
 
 
+@router.get("/api/contracts/board")
+def contract_expiry_board(
+    within_months: int = 12,
+    top_n: int = 500,
+    canonical_position: str | None = None,
+    min_performance_score: float | None = None,
+    min_age: int | None = None,
+    max_age: int | None = None,
+    max_value_eur: float | None = None,
+    league_name: str | None = None,
+) -> dict:
+    """Recruitment contract board using latest-season performance and current TM snapshot."""
+    if within_months not in (6, 12):
+        raise HTTPException(status_code=400, detail="within_months must be 6 or 12.")
+    if top_n < 1:
+        raise HTTPException(status_code=400, detail="top_n must be at least 1.")
+    if min_age is not None and max_age is not None and min_age > max_age:
+        raise HTTPException(status_code=400, detail="min_age cannot be greater than max_age.")
+
+    df = store.latest_season().copy()
+    if df.empty:
+        return {"available": False, "reason": "No player-season data loaded.", "results": [], "total": 0}
+
+    if "playing_time_min" in df.columns:
+        df["_contract_minutes_sort"] = pd.to_numeric(df["playing_time_min"], errors="coerce").fillna(-1)
+        df = df.sort_values("_contract_minutes_sort", ascending=False).drop_duplicates("player_id").drop(columns="_contract_minutes_sort")
+    else:
+        df = df.drop_duplicates("player_id")
+
+    if canonical_position:
+        df = df[df["canonical_position"] == canonical_position]
+    if league_name:
+        df = df[df["league_name"] == league_name]
+    if min_performance_score is not None:
+        df = df[pd.to_numeric(df["performance_score"], errors="coerce") >= min_performance_score]
+    if min_age is not None:
+        df = df[pd.to_numeric(df["age_fifa"], errors="coerce") >= min_age]
+    if max_age is not None:
+        df = df[pd.to_numeric(df["age_fifa"], errors="coerce") <= max_age]
+
+    from src.features.transfermarkt_context import SNAPSHOT_NOTE, bulk_contract_info
+
+    contract_info = bulk_contract_info(df["player_id"].astype(str).tolist())
+    results = []
+    for row in df.to_dict(orient="records"):
+        pid = str(row.get("player_id"))
+        contract = contract_info.get(pid)
+        if not contract:
+            continue
+        months = contract.get("contract_months_left")
+        if months is None or not 0 <= months <= within_months:
+            continue
+        tm_value = contract.get("tm_value_eur")
+        if max_value_eur is not None:
+            value_for_filter = tm_value if tm_value is not None else row.get("value_eur")
+            if value_for_filter is None or value_for_filter > max_value_eur:
+                continue
+        results.append({
+            "player_id": pid,
+            "short_name": row.get("short_name"),
+            "canonical_position": row.get("canonical_position"),
+            "club_name": row.get("club_name"),
+            "league_name": row.get("league_name"),
+            "age_fifa": row.get("age_fifa"),
+            "value_eur": row.get("value_eur"),
+            "performance_score": row.get("performance_score"),
+            "development_potential": row.get("development_potential"),
+            "recruitment_risk_tier": row.get("recruitment_risk_tier"),
+            "sample_reliability_tier": row.get("sample_reliability_tier"),
+            "playing_time_min": row.get("playing_time_min"),
+            **contract,
+        })
+
+    results = _native(results)
+    results.sort(key=lambda row: (row["contract_months_left"], -(row.get("performance_score") or 0)))
+    total = len(results)
+    return {
+        "available": True,
+        "analysis_season": store.current_season(),
+        "within_months": within_months,
+        "total": total,
+        "coverage": {
+            "player_pool": int(len(store.latest_season())),
+            "players_with_contract_data": int(len(contract_info)),
+            "players_with_expiry": int(sum(info.get("contract_months_left") is not None for info in contract_info.values())),
+        },
+        "snapshot_note": f"{SNAPSHOT_NOTE} Contract status is not historical and may refer to a different club than the selected season. Transfermarkt value is an estimate, not a transfer fee.",
+        "results": results[:min(top_n, 5000)],
+    }
+
+
 @router.get("/api/market/opportunities")
 def market_opportunities(
     top_n: int = 20,
     min_performance_score: float = 60,
-    min_value_gap_pct: float = 0,
+    min_value_gap_pct: float = -100,
     min_age: int | None = None,
     max_age: int | None = None,
     canonical_position: str | None = None,
@@ -815,6 +906,20 @@ def model_validation() -> dict:
     return {"available": True, **report}
 
 
+@router.get("/api/model-validation/market-signals")
+def market_signal_validation() -> dict:
+    """Run exploratory chronological comparison of market-discovery signals."""
+    from src.validation.market_signal_backtest import evaluate_market_signals
+    return _native(evaluate_market_signals(store.facts))
+
+
+@router.get("/api/model-validation/position-scores")
+def position_score_validation() -> dict:
+    """Diagnostics for goalkeeper and centre-back score stability and utility."""
+    from src.validation.position_score_backtest import evaluate_position_scores
+    return _native(evaluate_position_scores(store.facts))
+
+
 @router.get("/api/model-validation/status")
 def model_validation_status() -> dict:
     """Light-weight map used for status badges across the app."""
@@ -870,11 +975,20 @@ def export_shortlist(shortlist_id: int, season: int | None = None, session: Sess
     return _download(shortlist_workbook(data, season), XLSX_MIME, f"scoutiq-shortlist-{file_slug(data.get('name'), 'shortlist')}.xlsx")
 
 
+@router.get("/api/recruitment/shortlists/{shortlist_id}/export.pdf")
+def export_shortlist_pdf(shortlist_id: int, season: int | None = None, session: Session = Depends(get_session)) -> Response:
+    from src.reports.common import file_slug
+    from src.reports.pdf_report import shortlist_pack_pdf
+    data = _native(get_shortlist(shortlist_id, season, session))
+    pdf = shortlist_pack_pdf(data, season)
+    return _download(pdf, "application/pdf", f"scoutiq-shortlist-{file_slug(data.get('name'), 'shortlist')}.pdf")
+
+
 @router.get("/api/market/opportunities/export.xlsx")
 def export_opportunities(
     top_n: int = 200,
     min_performance_score: float = 60,
-    min_value_gap_pct: float = 0,
+    min_value_gap_pct: float = -100,
     min_age: int | None = None,
     max_age: int | None = None,
     canonical_position: str | None = None,
@@ -894,6 +1008,32 @@ def export_opportunities(
                                    risk_tier=risk_tier, segment=segment, season=season, min_reliability_tier=min_reliability_tier,
                                    max_contract_months=max_contract_months)
     return _download(opportunities_workbook(_native(payload), filters), XLSX_MIME, "scoutiq-market-opportunities.xlsx")
+
+
+@router.get("/api/contracts/board/export.pdf")
+def export_contract_board_pdf(
+    within_months: int = 12,
+    top_n: int = 500,
+    canonical_position: str | None = None,
+    min_performance_score: float | None = None,
+    min_age: int | None = None,
+    max_age: int | None = None,
+    max_value_eur: float | None = None,
+    league_name: str | None = None,
+) -> Response:
+    from src.reports.pdf_report import contract_board_pdf
+
+    payload = contract_expiry_board(
+        within_months=within_months,
+        top_n=top_n,
+        canonical_position=canonical_position,
+        min_performance_score=min_performance_score,
+        min_age=min_age,
+        max_age=max_age,
+        max_value_eur=max_value_eur,
+        league_name=league_name,
+    )
+    return _download(contract_board_pdf(payload), "application/pdf", "scoutiq-contract-expiry-board.pdf")
 
 
 @router.get("/api/club-profile/report.pdf")

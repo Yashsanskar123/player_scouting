@@ -363,8 +363,7 @@ export default function MarketOpportunitiesPage() {
     setMinPerformance] =
     useState("60");
 
-  const [minGap, setMinGap] =
-    useState("0");
+  const [minGap, setMinGap] = useState("");
 
   const [minAge, setMinAge] =
     useState("");
@@ -385,7 +384,7 @@ export default function MarketOpportunitiesPage() {
 
       minValueGapPct:
         Number(
-          minGap || 0
+          minGap || -100
         ),
 
       minAge:
@@ -490,7 +489,7 @@ export default function MarketOpportunitiesPage() {
     setMaxContract("");
 
     setMinPerformance("60");
-    setMinGap("0");
+    setMinGap("");
 
     setMinAge("");
     setMaxAge("");
@@ -512,15 +511,8 @@ export default function MarketOpportunitiesPage() {
             </h1>
 
             <p className="text-muted text-sm mt-1 max-w-4xl">
-
-              Recruitment-market screening for{" "}
-              {selectedLabel}.
-
-              The workspace separates value leverage,
-              performance, upside, wage efficiency and
-              recruitment risk so the shortlist can be
-              challenged by a scout.
-
+              The discovery score no longer uses the failed fair-value gap signal.
+              Add a minimum gap only when you explicitly want that filter.
             </p>
 
             <ValidationNotice keys={["value_gap", "performance_score"]} />
@@ -738,7 +730,7 @@ export default function MarketOpportunitiesPage() {
 
               <label className="text-2xs text-faint">
 
-                Min value gap %
+                Optional min value gap %
 
                 <input
                   value={minGap}

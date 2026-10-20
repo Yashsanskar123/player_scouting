@@ -174,3 +174,114 @@ def club_report_pdf(overview: dict) -> bytes:
         story += [_p(co.get("note", ""), SMALL)]
     story += [_p(f"Generated {generated_stamp()}", SMALL)]
     return _build(f"{club} - squad report", story)
+
+
+def contract_board_pdf(payload: dict) -> bytes:
+    rows = payload.get("results") or []
+    coverage = payload.get("coverage") or {}
+    story = [
+        _p("Contract expiry board", H1),
+        _p(f"Latest available analysis season · Contracts expiring within {payload.get('within_months', '—')} months", SUB),
+        _kpi_strip([
+            ("Matching contracts", str(payload.get("total", len(rows)))),
+            ("Players with contract data", str(coverage.get("players_with_contract_data", "—"))),
+            ("Players with expiry dates", str(coverage.get("players_with_expiry", "—"))),
+        ]),
+    ]
+    if rows:
+        table_rows = [["Player", "Pos", "Club", "League", "Age", "Perf.", "Expires", "Months", "TM value", "Link"]]
+        for row in rows:
+            table_rows.append([
+                pdf_safe(row.get("short_name"))[:22], row.get("canonical_position") or "—",
+                pdf_safe(row.get("club_name"))[:20], pdf_safe(row.get("league_name"))[:16],
+                number(row.get("age_fifa"), 0), number(row.get("performance_score")),
+                row.get("contract_expires") or "—", number(row.get("contract_months_left"), 1),
+                money(row.get("tm_value_eur")), row.get("tm_link_confidence") or "—",
+            ])
+        story += [_p("Candidates", H2), _table(table_rows, [25 * mm, 10 * mm, 22 * mm, 19 * mm, 8 * mm, 11 * mm, 20 * mm, 12 * mm, 20 * mm, 17 * mm])]
+    else:
+        story += [_p("No matching contracts were found for these filters.", BODY)]
+    if payload.get("snapshot_note"):
+        story += [_p(payload["snapshot_note"], SMALL)]
+    story += [_p(f"Generated {generated_stamp()}", SMALL)]
+    return _build("Contract expiry board", story)
+
+
+def shortlist_report_pdf(shortlist: dict, season: int | None) -> bytes:
+    entries = shortlist.get("entries") or []
+    story = [
+        _p(f"Shortlist: {shortlist.get('name') or 'Recruitment targets'}", H1),
+        _p(f"{len(entries)} candidates · Analysis season {season_label(season) if season else 'Latest'}", SUB),
+    ]
+    if entries:
+        rows = [["Player", "Pos", "Club", "League", "Age", "Status", "Rating", "Perf.", "Potential", "Value", "Risk", "Scout note"]]
+        for entry in entries:
+            player = entry.get("player") or {}
+            rows.append([
+                pdf_safe(player.get("short_name") or entry.get("player_id"))[:20],
+                player.get("canonical_position") or "—", pdf_safe(player.get("club_name"))[:18],
+                pdf_safe(player.get("league_name"))[:15], number(player.get("age_fifa"), 0),
+                entry.get("status") or "—", number(entry.get("rating"), 0),
+                number(player.get("performance_score")), number(player.get("development_potential")),
+                money(player.get("value_eur")), player.get("recruitment_risk_tier") or "—",
+                pdf_safe(entry.get("notes"))[:48],
+            ])
+        story += [_table(rows, [22 * mm, 10 * mm, 18 * mm, 15 * mm, 7 * mm, 16 * mm, 8 * mm, 11 * mm, 11 * mm, 17 * mm, 10 * mm, 29 * mm])]
+    else:
+        story += [_p("This shortlist has no candidates.", BODY)]
+    story += [_p("Market values are dataset estimates, not transfer fees. Model signals are evidence for review, not guarantees.", SMALL)]
+    story += [_p(f"Generated {generated_stamp()}", SMALL)]
+    return _build(f"{shortlist.get('name') or 'Shortlist'} - recruitment pack", story)
+
+
+def shortlist_pack_pdf(shortlist: dict, season: int | None = None) -> bytes:
+    """Meeting-ready shortlist pack using already computed player evidence."""
+    entries = shortlist.get("entries") or []
+    name = shortlist.get("name") or "Recruitment shortlist"
+    story = [
+        _p(name, H1),
+        _p(
+            f"Recruitment shortlist · Season "
+            f"{season_label(season) if season is not None else 'latest available'} "
+            f"· {len(entries)} players",
+            SUB,
+        ),
+    ]
+    if not entries:
+        story.append(_p("No players have been added to this shortlist yet."))
+    for index, entry in enumerate(entries, 1):
+        player = entry.get("player") or {}
+        player_name = (
+            player.get("short_name")
+            or entry.get("player_id")
+            or "Unknown player"
+        )
+        position = (
+            player.get("canonical_position")
+            or player.get("player_positions")
+            or "Position unavailable"
+        )
+        story.extend([
+            _p(f"{index}. {player_name}", H2),
+            _p(
+                f"{position} · {player.get('club_name') or 'Club unknown'} "
+                f"· {player.get('league_name') or 'League unknown'} "
+                f"· Age {number(player.get('age_fifa'), 0)}",
+                SUB,
+            ),
+            _kpi_strip([
+                ("Performance", number(player.get("performance_score"))),
+                ("Potential", number(player.get("development_potential"))),
+                ("Market value", money(player.get("value_eur"))),
+                ("Fair value", money(player.get("fair_value_eur"))),
+                ("Value gap", number(player.get("value_gap_pct"), 0, "%")),
+            ]),
+        ])
+        strengths = player.get("strengths") or []
+        concerns = player.get("concerns") or []
+        if strengths:
+            story.append(_p("Strengths: " + "; ".join(map(str, strengths[:4]))))
+        if concerns:
+            story.append(_p("Concerns: " + "; ".join(map(str, concerns[:4]))))
+    story += [_p(f"Generated {generated_stamp()}", SMALL)]
+    return _build(f"{name} - recruitment shortlist", story)

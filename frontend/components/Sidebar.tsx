@@ -18,6 +18,7 @@ const NAV = [
       { label: "Compare", href: "/scouting/compare" },
       { label: "Replacement Finder", href: "/scouting/replace" },
       { label: "Market Opportunities", href: "/market/opportunities" },
+      { label: "Contract Expiry Board", href: "/contracts" },
     ],
   },
   {

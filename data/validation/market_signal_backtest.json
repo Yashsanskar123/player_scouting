@@ -1,0 +1,37 @@
+{
+  "available": true,
+  "method": "Adjacent-season chronological pairing; same-season position percentile; no current contract snapshot used historically.",
+  "min_minutes_previous_season": 450,
+  "n_pairs": 15447,
+  "n_seasons": 7,
+  "results": [
+    {
+      "signal": "performance_baseline",
+      "n_pairs": 15447,
+      "spearman_next_minutes": 0.1127,
+      "spearman_next_performance": 0.4447,
+      "top_decile_next_minutes_median": 1910.0,
+      "cohort_next_minutes_median": 1761.0,
+      "minutes_lift_vs_baseline": 0.0
+    },
+    {
+      "signal": "performance_value_efficiency",
+      "n_pairs": 15447,
+      "spearman_next_minutes": -0.0371,
+      "spearman_next_performance": 0.1752,
+      "top_decile_next_minutes_median": 1706.0,
+      "cohort_next_minutes_median": 1761.0,
+      "minutes_lift_vs_baseline": -0.1498
+    },
+    {
+      "signal": "age_adjusted_performance",
+      "n_pairs": 15447,
+      "spearman_next_minutes": 0.1074,
+      "spearman_next_performance": 0.4338,
+      "top_decile_next_minutes_median": 1902.0,
+      "cohort_next_minutes_median": 1761.0,
+      "minutes_lift_vs_baseline": -0.0053
+    }
+  ],
+  "promotion_rule": "Do not promote a candidate from this pooled screen alone. Require positive improvement over baseline on next-season minutes and performance, then replicate by held-out season."
+}

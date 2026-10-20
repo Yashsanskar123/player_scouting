@@ -310,6 +310,58 @@ def test_opportunities_excel_export_is_valid(client):
     assert load_workbook(BytesIO(resp.content)).sheetnames == ["Summary", "Opportunities"]
 
 
+def test_contract_board_filters_and_sorts_expiring_players(client, api_test_df, monkeypatch):
+    from src.features import transfermarkt_context
+
+    current = api_test_df[api_test_df["season"] == api_test_df["season"].max()]
+    first, second = current.iloc[:2].to_dict(orient="records")
+    first_id, second_id = str(first["player_id"]), str(second["player_id"])
+
+    def fake_contract_info(player_ids):
+        records = {
+            first_id: {"contract_expires": "2027-01-01", "contract_months_left": 3, "contract_status": "Expiring within 6 months", "tm_value_eur": 1_000_000, "tm_link_confidence": "High"},
+            second_id: {"contract_expires": "2027-07-01", "contract_months_left": 9, "contract_status": "Expiring within 12 months", "tm_value_eur": 4_000_000, "tm_link_confidence": "Moderate"},
+        }
+        return {pid: records[pid] for pid in player_ids if pid in records}
+
+    monkeypatch.setattr(transfermarkt_context, "bulk_contract_info", fake_contract_info)
+    resp = client.get("/api/contracts/board", params={"within_months": 12, "max_value_eur": 2_000_000})
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["available"] is True
+    assert body["total"] == 1
+    assert body["results"][0]["player_id"] == first_id
+    assert body["results"][0]["contract_months_left"] == 3
+    assert body["coverage"]["players_with_expiry"] == 2
+
+
+def test_contract_board_pdf_download(client, api_test_df, monkeypatch):
+    from src.features import transfermarkt_context
+
+    player = api_test_df[api_test_df["season"] == api_test_df["season"].max()].iloc[0]
+    player_id = str(player["player_id"])
+    monkeypatch.setattr(transfermarkt_context, "bulk_contract_info", lambda player_ids: {
+        player_id: {"contract_expires": "2027-01-01", "contract_months_left": 3, "contract_status": "Expiring within 6 months", "tm_value_eur": 1_000_000, "tm_link_confidence": "High"}
+    } if player_id in player_ids else {})
+
+    resp = client.get("/api/contracts/board/export.pdf?within_months=6")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/pdf"
+    assert resp.content[:5] == b"%PDF-"
+
+
+def test_shortlist_pdf_export_contains_a_valid_pdf(client, api_test_df):
+    player_id = _any_player_id(api_test_df)
+    shortlist = client.post("/api/recruitment/shortlists", json={"name": "PDF pack test"}).json()
+    client.post(f"/api/recruitment/shortlists/{shortlist['id']}/entries", json={"player_id": player_id, "status": "Discovery"})
+
+    resp = client.get(f"/api/recruitment/shortlists/{shortlist['id']}/export.pdf")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/pdf"
+    assert resp.content[:5] == b"%PDF-"
+
+
 def test_club_report_requires_a_configured_profile(client, tmp_path, monkeypatch):
     from src.features import club_profile
     monkeypatch.setattr(club_profile, "PROFILE_PATH", tmp_path / "none.json")
@@ -324,6 +376,26 @@ def test_model_validation_endpoints_without_a_report(client, tmp_path, monkeypat
     loader._cache.update(mtime=None, data=None)
     assert client.get("/api/model-validation").json()["available"] is False
     assert client.get("/api/model-validation/status").json() == {"available": False, "status": {}}
+
+
+def test_market_signal_validation_endpoint_uses_loaded_facts(client):
+    response = client.get("/api/model-validation/market-signals")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["available"] is True
+    assert {row["signal"] for row in payload["results"]} == {
+        "performance_baseline",
+        "performance_value_efficiency",
+        "age_adjusted_performance",
+    }
+
+
+def test_position_score_validation_endpoint_reports_goalkeeper_and_cb(client):
+    response = client.get("/api/model-validation/position-scores")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["available"] is True
+    assert {row["position"] for row in payload["positions"]} == {"GK", "CB"}
 
 
 def test_model_validation_endpoints_with_a_report(client, tmp_path, monkeypatch):

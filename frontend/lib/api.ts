@@ -156,7 +156,7 @@ function buildOpportunityQuery(params: OpportunityParams): URLSearchParams {
       min_performance_score:
         String(params.minPerformanceScore ?? 60),
       min_value_gap_pct:
-        String(params.minValueGapPct ?? 0),
+        String(params.minValueGapPct ?? -100),
       segment:
         params.segment ?? "all",
     });
@@ -307,6 +307,31 @@ export const api = {
     }),
   marketOpportunities: (params: OpportunityParams = {}) =>
     request<any>(`/api/market/opportunities?${buildOpportunityQuery(params).toString()}`),
+  contractBoard: (
+    params: Record<string, string | number | undefined> = {}
+  ) => {
+    const qs = new URLSearchParams(
+      Object.entries(params).filter(
+        ([, v]) => v !== undefined && v !== ""
+      ) as [string, string][]
+    ).toString();
+
+    return request<any>(`/api/contracts/board?${qs}`);
+  },
+  downloadContractBoardPdf: (
+    params: Record<string, string | number | undefined> = {}
+  ) => {
+    const qs = new URLSearchParams(
+      Object.entries(params).filter(
+        ([, v]) => v !== undefined && v !== ""
+      ) as [string, string][]
+    ).toString();
+
+    return downloadFile(
+      `/api/contracts/board/export.pdf?${qs}`,
+      "scoutiq-contract-expiry-board.pdf"
+    );
+  },
   downloadOpportunitiesExcel: (params: OpportunityParams = {}) =>
     downloadFile(`/api/market/opportunities/export.xlsx?${buildOpportunityQuery({ ...params, topN: 200 }).toString()}`, "scoutiq-market-opportunities.xlsx"),
 
@@ -331,6 +356,16 @@ export const api = {
     downloadFile(`/api/players/${playerId}/report.pdf${season != null ? `?season=${season}` : ""}`, "scoutiq-player-report.pdf"),
   downloadShortlistExcel: (shortlistId: number, season?: number | null) =>
     downloadFile(`/api/recruitment/shortlists/${shortlistId}/export.xlsx${season != null ? `?season=${season}` : ""}`, "scoutiq-shortlist.xlsx"),
+  downloadShortlistPdf: (
+    shortlistId: number,
+    season?: number | null
+  ) =>
+    downloadFile(
+      `/api/recruitment/shortlists/${shortlistId}/export.pdf${
+        season != null ? `?season=${season}` : ""
+      }`,
+      "scoutiq-shortlist-pack.pdf"
+    ),
   downloadClubReport: (season?: number | null) =>
     downloadFile(`/api/club-profile/report.pdf${season != null ? `?season=${season}` : ""}`, "scoutiq-club-report.pdf"),
   getSecurityStatus: () => request<any>("/api/admin/security-status"),

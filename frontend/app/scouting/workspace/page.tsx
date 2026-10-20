@@ -705,8 +705,9 @@ export default function ScoutWorkspacePage() {
           </p>
 
           {selectedId !== null && (
-            <div className="mt-3">
+            <div className="mt-3 flex flex-wrap gap-2">
               <DownloadButton label="Export shortlist to Excel" onDownload={() => api.downloadShortlistExcel(selectedId, selectedSeason)} />
+              <DownloadButton label="Export shortlist meeting pack (PDF)" onDownload={() => api.downloadShortlistPdf(selectedId, selectedSeason)} />
             </div>
           )}
 

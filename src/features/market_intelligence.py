@@ -7,25 +7,43 @@ contract expiry, release clauses, transfer fees, or availability.
 from __future__ import annotations
 
 import pandas as pd
-
+import numpy as np
 
 FIT_WEIGHTS = {
-    "value_leverage": 0.35,
-    "wage_efficiency": 0.20,
-    "current_performance": 0.20,
-    "age_profile": 0.10,
+    "value_affordability": 0.10,
+    "wage_efficiency": 0.15,
+    "current_performance": 0.45,
+    "age_profile": 0.15,
     "uncertainty": 0.15,
 }
 
-RELIABILITY_TIER_RANK = {"Very Low": 0, "Low": 1, "Moderate": 2, "High": 3}
+RELIABILITY_TIER_RANK = {
+    "Very Low": 0,
+    "Low": 1,
+    "Moderate": 2,
+    "High": 3,
+}
 
 SEGMENT_DEFINITIONS = {
-    "all": "All players meeting the base market-opportunity criteria.",
-    "value": "Model fair value is at least 20% above the observed market-value signal.",
-    "performance": "Performance score is at least 75 with a positive value gap.",
-    "upside": "Age is 23 or below, potential is at least 75, and the value gap is positive.",
-    "efficient": "Wage-to-value burden is at most 5% with a positive value gap.",
-    "low_risk": "Positive value gap with LOW recruitment-risk tier.",
+    "all": (
+        "All players meeting the performance and user-selected filters; "
+        "a positive fair-value gap is not required."
+    ),
+    "value": (
+        "Model fair value is at least 20% above the observed market-value signal."
+    ),
+    "performance": (
+        "Performance score is at least 75, independent of fair-value gap."
+    ),
+    "upside": (
+        "Age is 23 or below and potential is at least 75."
+    ),
+    "efficient": (
+        "Wage-to-value burden is at most 5%."
+    ),
+    "low_risk": (
+        "LOW recruitment-risk tier, independent of fair-value gap."
+    ),
 }
 
 
@@ -82,82 +100,51 @@ def _add_market_metrics(df: pd.DataFrame) -> pd.DataFrame:
     age = _numeric(work, "age_fifa")
     risk = _numeric(work, "recruitment_risk_score")
 
-    wage_to_value = pd.Series(
-        float("nan"),
-        index=work.index,
-    )
+    wage_to_value = pd.Series(float("nan"), index=work.index)
 
-    valid_value = (
-        value.notna()
-        & (value > 0)
-        & wage.notna()
-    )
-
+    valid_value = value.notna() & (value > 0) & wage.notna()
     wage_to_value.loc[valid_value] = (
-        wage.loc[valid_value]
-        / value.loc[valid_value]
-        * 100.0
+        wage.loc[valid_value] / value.loc[valid_value] * 100.0
     )
-
     work["wage_to_value_pct"] = wage_to_value
 
     components = pd.DataFrame(index=work.index)
 
-    components["value_leverage"] = (
-        50.0 + gap
-    ).clip(0, 100)
+    # Lower-valued players rank as more affordable within the cohort.
+    log_value = np.log1p(value.clip(lower=0))
+    value_percentile = log_value.rank(pct=True) * 100
+    components["value_affordability"] = (
+        100.0 - value_percentile
+    ).where(value.notna() & (value >= 0))
 
     components["wage_efficiency"] = (
         100.0 - wage_to_value * 10.0
     ).clip(0, 100)
 
-    components["current_performance"] = (
-        performance
-    ).clip(0, 100)
+    components["current_performance"] = performance.clip(0, 100)
 
     components["age_profile"] = (
         100.0 - (age - 24.0).abs() * 7.0
     ).clip(0, 100)
 
-    components["uncertainty"] = (
-        100.0 - risk
-    ).clip(0, 100)
+    components["uncertainty"] = (100.0 - risk).clip(0, 100)
 
-    score = pd.Series(
-        0.0,
-        index=work.index,
-    )
-
-    available_weight = pd.Series(
-        0.0,
-        index=work.index,
-    )
+    score = pd.Series(0.0, index=work.index)
+    available_weight = pd.Series(0.0, index=work.index)
 
     for key, weight in FIT_WEIGHTS.items():
         available = components[key].notna()
-
-        score = (
-            score
-            + components[key].fillna(0) * weight
-        )
-
-        available_weight = (
-            available_weight
-            + available.astype(float) * weight
-        )
+        score += components[key].fillna(0) * weight
+        available_weight += available.astype(float) * weight
 
     work["opportunity_score"] = (
-        score
-        / available_weight.replace(0, pd.NA)
+        score / available_weight.replace(0, pd.NA)
     ).round(1)
 
     work["_value"] = value
     work["_gap"] = gap
     work["_performance"] = performance
-    work["_potential"] = _numeric(
-        work,
-        "development_potential",
-    )
+    work["_potential"] = _numeric(work, "development_potential")
     work["_age"] = age
     work["_risk"] = risk
 
@@ -178,38 +165,27 @@ def _segment_mask(
         )
 
     if segment == "performance":
-        return (
-            positive_gap
-            & (df["_performance"] >= 75)
-        )
+        return df["_performance"] >= 75
 
     if segment == "upside":
-        return (
-            positive_gap
-            & (df["_age"] <= 23)
-            & (df["_potential"] >= 75)
-        )
+        return (df["_age"] <= 23) & (df["_potential"] >= 75)
 
     if segment == "efficient":
         return (
-            positive_gap
-            & df["wage_to_value_pct"].notna()
+            df["wage_to_value_pct"].notna()
             & (df["wage_to_value_pct"] <= 5)
         )
 
     if segment == "low_risk":
         return (
-            positive_gap
-            & (
-                df.get(
-                    "recruitment_risk_tier",
-                    pd.Series(index=df.index),
-                )
-                == "LOW"
+            df.get(
+                "recruitment_risk_tier",
+                pd.Series(index=df.index, dtype=object),
             )
+            == "LOW"
         )
 
-    return positive_gap
+    return pd.Series(True, index=df.index)
 
 
 def build_market_intelligence(
@@ -217,7 +193,7 @@ def build_market_intelligence(
     *,
     top_n: int = 20,
     min_performance_score: float = 60,
-    min_value_gap_pct: float = 0,
+    min_value_gap_pct: float = -100,
     min_age: int | None = None,
     max_age: int | None = None,
     canonical_position: str | None = None,
@@ -280,10 +256,8 @@ def build_market_intelligence(
         >= float(min_performance_score)
     ]
 
-    base = base[
-        base["_gap"]
-        > float(min_value_gap_pct)
-    ]
+    if min_value_gap_pct is not None and float(min_value_gap_pct) > -100:
+        base = base[base["_gap"] > float(min_value_gap_pct)]
 
     if min_age is not None:
         base = base[
@@ -567,30 +541,26 @@ def build_market_intelligence(
 
         "methodology": {
             "base_definition": (
-                "performance score meets the "
-                "selected minimum and model "
-                "value gap is above the selected "
-                "minimum."
+                "Performance score meets the selected minimum and other selected filters. "
+                "The default discovery pool does not require a positive fair-value gap; "
+                "the optional gap filter is an explicit user constraint."
             ),
             "opportunity_score": (
-                "Transparent weighted signal using "
-                "value leverage 35%, wage efficiency "
-                "20%, current performance 20%, age "
-                "profile 10%, and uncertainty 15%, "
-                "renormalized when a component is "
-                "unavailable."
+                "Recruitment discovery ranking (not a predicted future outcome): "
+                "current performance 45%, wage efficiency 15%, age profile 15%, "
+                "lower recruitment uncertainty 15%, and cohort-relative market-value "
+                "affordability 10%, renormalized when a component is unavailable. "
+                "The failed fair-value gap signal is not part of the score."
             ),
             "fair_value_note": (
-                "fair_value_eur is a trained-model "
-                "estimate against this dataset's FIFA "
-                "in-game valuation; it is not a real "
-                "transfer-market appraisal."
+                "fair_value_eur is a trained-model estimate against this dataset's "
+                "FIFA in-game valuation; it is not a real transfer-market appraisal "
+                "and the fair-value gap did not pass the prior forward test as an "
+                "undervaluation signal."
             ),
             "data_boundary": (
-                "Contract expiry, release clause, "
-                "negotiated transfer fee, availability "
-                "and scouting observations are not "
-                "present in the current FIFA/FBref dataset."
+                "Contract expiry, release clause, negotiated transfer fee, availability "
+                "and scouting observations are not present in the current FIFA/FBref dataset."
             ),
         },
     }

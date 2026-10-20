@@ -44,6 +44,8 @@ _RULES: list[tuple[str, re.Pattern, str, str | None]] = [
     ("PATCH", re.compile(r"^/api/users/(?P<entity>[^/]+)$"), "admin", "user.update"),
     # Exports are read-only but recorded in the audit trail (data leaving the platform).
     ("GET", re.compile(r"^/api/players/(?P<entity>[^/]+)/report\.pdf$"), "read", "export.player_report"),
+    ("GET", re.compile(r"^/api/contracts/board/export\.pdf$"), "read", "export.contract_board"),
+    ("GET", re.compile(r"^/api/recruitment/shortlists/(?P<entity>[^/]+)/export\.pdf$"), "read", "export.shortlist_pdf"),
     ("GET", re.compile(r"^/api/recruitment/shortlists/(?P<entity>[^/]+)/export\.xlsx$"), "read", "export.shortlist"),
     ("GET", re.compile(r"^/api/market/opportunities/export\.xlsx$"), "read", "export.opportunities"),
     ("GET", re.compile(r"^/api/club-profile/report\.pdf$"), "read", "export.club_report"),

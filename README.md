@@ -140,3 +140,53 @@ frontend/          Next.js app
 docs/              architecture report, model card, data dictionary, roadmap
 data/              raw + cleaned + processed CSVs, mapping files
 ```
+
+## Recruitment improvements — October 2026
+
+- Contract expiry board:
+  `/api/contracts/board?within_months=6`
+  or `/api/contracts/board?within_months=12`
+- Contract board PDF:
+  `/api/contracts/board/export.pdf?within_months=12`
+- Shortlist meeting pack:
+  `/api/recruitment/shortlists/{id}/export.pdf`
+- Market signal experiment:
+  `/api/model-validation/market-signals`
+- Position score diagnostics:
+  `/api/model-validation/position-scores`
+
+### Data limitations
+
+The current archive contains season-level FIFA/FBref data and Transfermarkt
+player links, valuation history and transfer history.
+
+Do not label season-level appearances as last-10-match form. Do not treat
+current Transfermarkt contract snapshots as historical contract information.
+
+The market opportunity score is a recruitment discovery ranking, not a
+validated prediction of future performance, transfer price, or undervaluation.
+
+## Recruitment improvements — October 2026
+
+- Contract expiry board:
+  `/api/contracts/board?within_months=6`
+  or `/api/contracts/board?within_months=12`
+- Contract board PDF:
+  `/api/contracts/board/export.pdf?within_months=12`
+- Shortlist meeting pack:
+  `/api/recruitment/shortlists/{id}/export.pdf`
+- Market signal experiment:
+  `/api/model-validation/market-signals`
+- Position score diagnostics:
+  `/api/model-validation/position-scores`
+
+### Data limitations
+
+The current archive contains season-level FIFA/FBref data and Transfermarkt
+player links, valuation history and transfer history.
+
+Do not label season-level appearances as last-10-match form. Do not treat
+current Transfermarkt contract snapshots as historical contract information.
+
+The market opportunity score is a recruitment discovery ranking, not a
+validated prediction of future performance, transfer price, or undervaluation.

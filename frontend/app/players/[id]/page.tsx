@@ -149,6 +149,65 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
         </div>
       </section>
 
+      <section className="analytics-panel">
+        <PanelHeader
+          title="Recent performance & availability"
+          subtitle="Latest available season summary · season-level data, not a last-10-match log"
+        />
+
+        <div className="grid grid-cols-2 md:grid-cols-5 divide-x divide-y md:divide-y-0 divide-border">
+          <PotentialStat
+            label="Appearances"
+            value={
+              player.playing_time_mp == null
+                ? "—"
+                : String(Math.round(Number(player.playing_time_mp)))
+            }
+          />
+          <PotentialStat
+            label="Starts"
+            value={
+              player.playing_time_starts == null
+                ? "—"
+                : String(Math.round(Number(player.playing_time_starts)))
+            }
+          />
+          <PotentialStat
+            label="Substitute apps"
+            value={
+              player.playing_time_mp == null || player.playing_time_starts == null
+                ? "—"
+                : String(Math.round(Math.max(0, Number(player.playing_time_mp) - Number(player.playing_time_starts))))
+            }
+          />
+          <PotentialStat
+            label="Start share"
+            value={
+              player.playing_time_mp == null || Number(player.playing_time_mp) <= 0 || player.playing_time_starts == null
+                ? "—"
+                : `${((Number(player.playing_time_starts) / Number(player.playing_time_mp)) * 100).toFixed(0)}%`
+            }
+          />
+          <PotentialStat
+            label="Minutes / app"
+            value={
+              player.playing_time_mp == null || Number(player.playing_time_mp) <= 0 || player.playing_time_min == null
+                ? "—"
+                : (Number(player.playing_time_min) / Number(player.playing_time_mp)).toFixed(0)
+            }
+          />
+        </div>
+
+        <div className="px-5 py-3 border-t border-border text-xs text-muted leading-5">
+          Latest season performance: {num(player.performance_score)}
+          {performanceDelta == null
+            ? " · No adjacent-season comparison available."
+            : ` · ${performanceDelta >= 0 ? "+" : ""}${performanceDelta.toFixed(1)} points versus the previous observed season.`}
+          {" "}Match-by-match results are not present in this archive, so last-10
+          form, match availability and injury absences are not inferred.
+        </div>
+      </section>
+
       {/* Advanced potential */}
       <section className="analytics-panel">
         <PanelHeader title="Development trajectory" subtitle="Current ability, expected progression and exploratory upside signals" />
